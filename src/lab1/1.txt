@@ -1,0 +1,4 @@
+test 
+You can now build your TypeScript files by pressing
+CTRL+SHIFT+B. After the compilation succeed,
+you should see a new file main.js in the explorer
