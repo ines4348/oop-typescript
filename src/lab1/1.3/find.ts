@@ -10,7 +10,7 @@ const MESSAGE_SOME_ERROR = 'Some error'
 find(process.argv)
 
 async function find(argv: string[]) {
-    if (argv[2] && argv[3]) {
+    if (argv.length === 4) {
         const content = await getFileContent(argv[2])
 
         if (content) {
