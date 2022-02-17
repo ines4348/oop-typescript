@@ -1,0 +1,1 @@
+The argument contains characters other than numbers. Usage: flipbyte.ts <integer 0..255>
