@@ -13,7 +13,7 @@ async function find(argv: string[]) {
     if (argv.length === 4) {
         const content = await getFileContent(argv[2])
 
-        if (content) {
+        if (content || content === '') {
             const searchResult: number[] = findTextOccurrences(content, argv[3])
             printResult(searchResult)
         }
