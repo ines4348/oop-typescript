@@ -24,11 +24,12 @@ async function find(argv: string[]) {
 
 async function getFileContent(path: string): Promise<string> {
     try {
-        return await readFile(path, 'utf8')
+        return await readFile(path, 'utf8') //readLine getLine
     } catch (err) {
         handleError(err)
     }
 }
+
 
 function printResult(result: number[]): void {
     if (result.length > 0) {
@@ -52,7 +53,6 @@ function handleError(err: NodeJS.ErrnoException): void {
 function findTextOccurrences(fileContent: string, textToSearch: string): number[] {
     const lineList: string[] = fileContent.split('\n')
     const result: number[] = []
-
     lineList.forEach((line, index) => {
         if (line.includes(textToSearch)) {
             result.push(index)

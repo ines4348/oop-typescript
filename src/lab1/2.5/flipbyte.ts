@@ -7,14 +7,33 @@ const MAX = 255
 flipByte(process.argv)
 
 function flipByte(argv: string[]): void {
+    if (isCorrectArgument(argv)) {
+        const result = flipNumberBytes(parseInt(argv[2]))
+        console.log(result)
+    }
+}
+
+function isCorrectArgument(argv: string[]): boolean {
+    let isCorrect = true
+
     if (argv.length === 3) {
-        if (isCorrectArgument(argv[2])) {
-            const result = flipNumberBytes(parseInt(argv[2]))
-            console.log(result)
+        if (!argv[2].match(/[^0-9]/)) {
+            const argumentValue: number = parseInt(argv[2])
+
+            if (argumentValue > MAX) {
+                isCorrect = false
+                console.log(MESSAGE_CALL_APP_WITH_CORRECT_NUMBER)
+            }
+        } else {
+            isCorrect = false
+            console.log(MESSAGE_CALL_APP_WITH_NUMBER)
         }
     } else {
+        isCorrect = false
         console.log(MESSAGE_CALL_APP_WITH_ARGUMENT)
     }
+
+    return isCorrect
 }
 
 function flipNumberBytes(num: number): number {
@@ -26,21 +45,4 @@ function flipNumberBytes(num: number): number {
     num = ((num & 0x0F) << 4) | ((num >> 4) & 0x0F)
 
     return num
-}
-
-function isCorrectArgument(str: string): boolean {
-    let isCorrect = true
-
-    if (!str.match(/[^0-9]/)) {
-        const argumentValue: number = parseInt(str)
-
-        if (argumentValue > MAX) {
-            isCorrect = false
-            console.log(MESSAGE_CALL_APP_WITH_CORRECT_NUMBER)
-        }
-    } else {
-        isCorrect = false
-        console.log(MESSAGE_CALL_APP_WITH_NUMBER)
-    }
-    return isCorrect
 }
