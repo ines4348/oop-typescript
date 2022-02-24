@@ -45,7 +45,7 @@ fc invalidMatrixData.txt "%TEMP%\output.txt" > nul || goto err
 echo Test 7 passed successfully
 
 REM На вход дан файл с неполной матрицей
-call ts-node %MyProgram% matrix3x2.txt>"%TEMP%\output.txt" || goto err
+call ts-node %MyProgram% matrix2x2.txt>"%TEMP%\output.txt" || goto err
 fc invalidMatrixSize.txt "%TEMP%\output.txt" > nul || goto err
 echo Test 8 passed successfully
 

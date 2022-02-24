@@ -53,14 +53,14 @@ function isContentValid(fileContent: string): boolean {
     const lineList: string[] = fileContent.split('\r\n', MATRIX_SIZE)
 
     if (lineList.length === 3) {
-        lineList.forEach((line: string, index: number) => {
+        for (const line of lineList) {
             const elementList: string[] = line.split('\t', MATRIX_SIZE)
 
             if (elementList.length != 3) {
                 console.log(MESSAGE_INVALID_MATRIX_SIZE)
                 return false
             }
-        })
+        }
     } else {
         console.log(MESSAGE_INVALID_MATRIX_SIZE)
         return false
@@ -73,7 +73,7 @@ function copyFileContentToArray(fileContent: string): number[][] {
     const result: number[][] = []
     const lineList: string[] = fileContent.split('\r\n', MATRIX_SIZE)
 
-    lineList.forEach((line: string, index: number) => {
+    lineList.forEach((line: string) => {
         const elementList: string[] = line.split('\t', MATRIX_SIZE)
         const tempResult: number[] = []
 
@@ -135,7 +135,7 @@ function getMinor(matrix: number[][], indRow: number, indCol: number): number[][
         const row: number[] = []
 
         if (i != indRow) {
-            for (let j = 0, kj = 0; j < matrix.length; j++) {
+            for (let j = 0; j < matrix.length; j++) {
                 if (j != indCol) {
                     row.push(matrix[i][j])
                 }
