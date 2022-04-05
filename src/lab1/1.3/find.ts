@@ -22,6 +22,7 @@ async function find(argv: string[]) {
     }
 }
 
+// @ts-ignore
 async function getFileContent(path: string): Promise<string> {
     try {
         return await readFile(path, 'utf8') //readLine getLine

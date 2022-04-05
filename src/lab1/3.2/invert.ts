@@ -2,52 +2,64 @@ import {readFile} from 'fs/promises'
 
 const MESSAGE_CALL_APP_WITH_ARGUMENT = 'Call app with 1 argument: invert.ts <matrix file>'
 const MESSAGE_NO_SUCH_FILE = 'No such file or directory'
-const MESSAGE_SOME_ERROR = 'Some error'
 const MESSAGE_INVALID_DATA = 'Wrong input data. The matrix must consist of numbers'
 const MESSAGE_INVALID_MATRIX_SIZE = 'Matrix size should be 3 * 3'
 const MESSAGE_DET_IS_NULL = 'Since the determinant of the matrix = 0, the matrix is degenerate and has no inverse'
 
-const NO_SUCH_FILE = 'ENOENT'
 const MATRIX_SIZE = 3
 
-invert(process.argv)
+main(process.argv)
 
-async function invert(argv: string[]): Promise<void> {
-    if (argv.length === 3) {
-        const content = await getFileContent(argv[2])
-        if ((content || content === '') && isContentValid(content)) {
-            const invert: null | number[][] = invertMatrix(copyFileContentToArray(content))
-            if (invert) {
-                printMatrix(invert)
-            }
-        }
+async function main(argv: string[]): Promise<void> {
+    if (argv.length != 3) {
+        printError(MESSAGE_CALL_APP_WITH_ARGUMENT)
+        return
+    }
+
+    const content: string | null = await getFileContent(argv[2])
+
+    if (!content && content != '') {
+        printError(MESSAGE_NO_SUCH_FILE)
+        return
+    } else if (content === '') {
+        printError(MESSAGE_INVALID_MATRIX_SIZE)
+        return
+    }
+
+    const contentError: string | null = getContentError(content)
+    if (contentError) {
+        printError(contentError)
+        return
+    }
+
+    const invert: number[][] | null = invertMatrix(copyFileContentToArray(content))
+    if (invert) {
+        printMatrix(invert)
     } else {
-        console.log(MESSAGE_CALL_APP_WITH_ARGUMENT)
+        printError(MESSAGE_DET_IS_NULL)
+        return
     }
 }
 
-async function getFileContent(path: string): Promise<string> {
-    try {
-        return await readFile(path, 'utf8')
-    } catch (err) {
-        handleError(err)
-    }
+function printError(error: string) {
+    console.log(error)
 }
 
-function handleError(err: NodeJS.ErrnoException): void {
-    if (err) {
-        if (err.code && err.code === NO_SUCH_FILE) {
-            console.log(MESSAGE_NO_SUCH_FILE)
-        } else {
-            console.log(MESSAGE_SOME_ERROR)
-        }
-    }
+function getFileContent(path: string): Promise<string | null> {
+    //заменить на .catch()
+    return readFile(path, 'utf8')
+        .then((value: string) => {
+            return value
+        })
+        .catch((error: NodeJS.ErrnoException) => {
+            return null
+        })
 }
 
-function isContentValid(fileContent: string): boolean {
+function getContentError(fileContent: string): string | null {
+    //разделить печать и проверку
     if (fileContent.length > 0 && fileContent.match(/[^0-9-,.\s\r\n\t]/)) {
-        console.log(MESSAGE_INVALID_DATA)
-        return false
+        return MESSAGE_INVALID_DATA
     }
 
     const lineList: string[] = fileContent.split('\r\n', MATRIX_SIZE)
@@ -57,134 +69,122 @@ function isContentValid(fileContent: string): boolean {
             const elementList: string[] = line.split('\t', MATRIX_SIZE)
 
             if (elementList.length != 3) {
-                console.log(MESSAGE_INVALID_MATRIX_SIZE)
-                return false
+                return MESSAGE_INVALID_MATRIX_SIZE
             }
         }
     } else {
-        console.log(MESSAGE_INVALID_MATRIX_SIZE)
-        return false
+        return MESSAGE_INVALID_MATRIX_SIZE
     }
-
-    return true
+    return null
 }
 
 function copyFileContentToArray(fileContent: string): number[][] {
-    const result: number[][] = []
     const lineList: string[] = fileContent.split('\r\n', MATRIX_SIZE)
-
-    lineList.forEach((line: string) => {
+    //переписать через map
+    return lineList.map((line: string) => {
         const elementList: string[] = line.split('\t', MATRIX_SIZE)
-        const tempResult: number[] = []
-
-        elementList.forEach((element: string) => {
-            tempResult.push(parseFloat(element))
-        })
-
-        result.push(tempResult)
+        return elementList.map(parseFloat)
     })
-
-    return result
 }
 
-function invertMatrix(matrix: number[][]): null | number[][] {
-    const mainA = getDet(matrix, MATRIX_SIZE)
-    if (mainA === 0) {
-        console.log(MESSAGE_DET_IS_NULL)
-    } else {
-        return getInverseMatrix(matrix, mainA)
+function invertMatrix(matrix: number[][]): number[][] | null {
+    //переименовать, норм имя
+    const matrixDeterminant: number = getMatrixDeterminant(matrix, MATRIX_SIZE)
+    if (matrixDeterminant === 0) {
+        //добавить return null
+        return null
     }
+    const transposedMatrix: number[][] = getTransposedMatrix(matrix)
+    return getInverseMatrix(transposedMatrix, matrixDeterminant)
 }
 
 function getTransposedMatrix(matrix: number[][]): number[][] {
-    let transposedMatrix: number[][] = []
+    //map
+    return matrix.map(
+        (row: number[], i: number) => row.map(
+            (element: number, j: number) => matrix[j][i]
+        )
+    )
+}
 
-    for (let i = 0; i < 3; i++) {
-        const row: number[] = []
+function getInverseMatrix(transposedMatrix: number[][], detMatrix: number): number[][] {
+    //вынести в отдельную функцию цикл
+    //через map
+    return transposedMatrix.map((row: number[], i: number) => {
+        return row.map((element: number, j: number) => {
+            return getMatrixCofactors(getMatrixMinor(transposedMatrix, i, j), i + j) / detMatrix
+        })
+    })
+}
 
-        for (let j = 0; j < 3; j++) {
-            row.push(matrix[j][i])
+function getSmallerSquareMatrix(matrix: number[][], rowIndex: number, columnIndex: number): number[][] {
+    const smallerSquareMatrix: number[][] = []
+
+    matrix.forEach((matrixRow: number[], index: number) => {
+        if (index != rowIndex) {
+            const smallerSquareMatrixRow: number[] = matrixRow.slice()
+            smallerSquareMatrixRow.splice(columnIndex, 1)
+            smallerSquareMatrix.push(smallerSquareMatrixRow)
         }
-
-        transposedMatrix.push(row)
-    }
-
-    return transposedMatrix
+    })
+    return smallerSquareMatrix
 }
 
-function getInverseMatrix(matrix: number[][], detMatrix: number): number[][] {
-    const transposedMatrix: number[][] = getTransposedMatrix(matrix)
-    const inverseMatrix: number[][] = []
-
-    for (let i = 0; i < MATRIX_SIZE; i++) {
-        const row: number[] = []
-
-        for (let j = 0; j < MATRIX_SIZE; j++) {
-
-            row.push(getAlgebraicAdditions(getMinor(transposedMatrix, i, j), i + j) / detMatrix)
-        }
-        inverseMatrix.push(row)
-    }
-    return inverseMatrix
+function getMatrixCofactors(matrixMinor: number, exponent: number): number {
+    return Math.pow(-1, (exponent % 2)) * matrixMinor
 }
 
-function getMinor(matrix: number[][], indRow: number, indCol: number): number[][] {
-    const minorMatrix: number[][] = []
-
-    for (let i = 0; i < matrix.length; i++) {
-        const row: number[] = []
-
-        if (i != indRow) {
-            for (let j = 0; j < matrix.length; j++) {
-                if (j != indCol) {
-                    row.push(matrix[i][j])
-                }
-            }
-            minorMatrix.push(row)
-        }
-    }
-
-    return minorMatrix
+function getMatrixMinor(matrix: number[][], rowIndex: number, columnIndex: number): number {
+    return getMatrixDeterminant(getSmallerSquareMatrix(matrix, rowIndex, columnIndex), 2)
 }
 
-function getAlgebraicAdditions(matrix: number[][], exponent: number): number {
-    return Math.pow(-1, (exponent % 2)) * getDet(matrix, 2)
+//разделить на 2 функции
+function printMatrix(matrix: number[][]): void {
+    matrix.forEach((row: number[]) => {
+        console.log(getMatrixFormattedRow(row))
+    })
 }
 
-function getDet(matrix: number[][], matrixSize: number) {
+function getMatrixFormattedRow(matrixRow: number[]): string {
+    return matrixRow
+        .map((element: number) => element.toFixed(3))
+        .join(' ')
+}
+
+//разделить на 2 функции
+function getMatrixDeterminant(matrix: number[][], matrixSize: number): number {
     let detMatrix = 0
 
     switch (matrixSize) {
-        case 1: {
-            detMatrix = matrix[0][0]
+        case 2: {
+            detMatrix = getMatrix2x2Determinant(matrix)
             break
         }
-        case 2: {
-            detMatrix = matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
+        case 3: {
+            detMatrix = getMatrix3x3Determinant(matrix)
             break
         }
         default: {
-            detMatrix += matrix[0][0] * matrix[1][1] * matrix[2][2]
-            detMatrix += matrix[0][1] * matrix[1][2] * matrix[2][0]
-            detMatrix += matrix[0][2] * matrix[1][0] * matrix[2][1]
-            detMatrix -= matrix[0][2] * matrix[1][1] * matrix[2][0]
-            detMatrix -= matrix[0][0] * matrix[1][2] * matrix[2][1]
-            detMatrix -= matrix[0][1] * matrix[1][0] * matrix[2][2]
+            detMatrix += matrix[0][0]
         }
     }
 
     return detMatrix
 }
 
-function printMatrix(matrix: number[][]) {
-    for (let i = 0; i < matrix.length; i++) {
-        let tempString = ''
-        for (let j = 0; j < matrix.length; j++) {
-            if (matrix[i][j] > 0) {
-                tempString += ' '
-            }
-            tempString += matrix[i][j].toFixed(3) + '  '
-        }
-        console.log(tempString.trimEnd())
-    }
+function getMatrix3x3Determinant(matrix: number[][]): number {
+    let detMatrix = 0
+
+    detMatrix += matrix[0][0] * matrix[1][1] * matrix[2][2]
+    detMatrix += matrix[0][1] * matrix[1][2] * matrix[2][0]
+    detMatrix += matrix[0][2] * matrix[1][0] * matrix[2][1]
+    detMatrix -= matrix[0][2] * matrix[1][1] * matrix[2][0]
+    detMatrix -= matrix[0][0] * matrix[1][2] * matrix[2][1]
+    detMatrix -= matrix[0][1] * matrix[1][0] * matrix[2][2]
+
+    return detMatrix
+}
+
+function getMatrix2x2Determinant(matrix: number[][]): number {
+    return matrix[0][0] * matrix[1][1] - matrix[1][0] * matrix[0][1]
 }
