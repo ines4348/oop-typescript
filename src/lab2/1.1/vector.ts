@@ -6,7 +6,7 @@ const MESSAGE_INVALID_INPUT = 'Invalid value in input. String should be contains
 
 main()
 
-function main(): void {
+function main(): void {// учесть кейс 2...5 и 5.5.7
     const readLineInterface: Interface = createInterface({input, output})
     readLineInterface.question(MESSAGE_WELCOME_INPUT, (answer: string) => {
         if (answer && isContainsOnlyNumbers(answer)) {

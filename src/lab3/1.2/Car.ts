@@ -57,8 +57,9 @@ class Car {
     }
 
     public setGear(gear: number): boolean {
-        if (this.isChangeGear(gear)) {
+        if (this.isChangeGear(gear) && this.isCorrespondsGearToDirection(gear)) {
             this.gear = this.convertGearNumberToEnum(gear)
+            this.changeDirection()
             return true
         }
         return false
@@ -66,35 +67,31 @@ class Car {
 
     public setSpeed(speed: number): boolean {
         if (this.isChangeSpeed(speed)) {
-            this.setDirection({speed: speed})
             this.speed = speed
+            this.changeDirection()
             return true
         }
         return false
     }
 
-    private setDirection(options: {speed?: number, gear?: Gear}): void {
-        if (options.gear === Gear.REVERSE) {
+    private changeDirection(): void {
+        if (this.gear === Gear.REVERSE && this.speed > 0) {
             this.direction = Direction.BACKWARD
             return
         }
 
-        if (options.gear && options.gear > Gear.NEUTRAL) {
+        if (this.gear > Gear.NEUTRAL && this.speed > 0) {
             this.direction = Direction.FORWARD
             return
         }
 
-        if (options.speed === 0) {
+        if (this.speed === 0) {
             this.direction = Direction.STAND
             return
         }
     }
 
     private isChangeSpeed(speed: number): boolean {
-        if (this.getGear() === Gear.NEUTRAL && (this.speed - speed) > 0) {
-            return true
-        }
-
         return this.isCorrespondsGearToSpeed(this.getGear(), speed)
     }
 
@@ -134,7 +131,12 @@ class Car {
     private isCorrespondsGearToSpeed(gear: Gear, speed: number) {
         switch (gear) {
             case Gear.NEUTRAL: {
-                return true
+                if (this.getGear() === Gear.NEUTRAL && (this.speed - speed) >= 0) {
+                    return true
+                } else if (this.getGear() != Gear.NEUTRAL) {
+                    return true
+                }
+                break
             }
             case Gear.FIRST: {
                 if (speed >= 0 && speed <= 30) {
@@ -167,13 +169,36 @@ class Car {
                 break
             }
             case Gear.REVERSE: {
-                if (speed >= 0 && speed <= 20) {
+                if (this.getGear() === Gear.REVERSE && speed >= 0 && speed <= 20) {
+                    return true
+                } else if (this.getSpeed() === 0 && speed >= 0 && speed <= 20) {
                     return true
                 }
                 break
             }
         }
 
+        return false
+    }
+
+    private isCorrespondsGearToDirection(gear: Gear): boolean {
+        switch (this.getDirection()) {
+            case Direction.STAND: {
+                return true
+            }
+            case Direction.FORWARD: {
+                if (gear != Gear.REVERSE) {
+                    return true
+                }
+                break
+            }
+            case Direction.BACKWARD: {
+                if (gear <= Gear.NEUTRAL) {
+                    return true
+                }
+                break
+            }
+        }
         return false
     }
 }
