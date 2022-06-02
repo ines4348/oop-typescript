@@ -7,7 +7,6 @@
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
-        "noImplicitUseStrict": true,
         "preserveConstEnums": true,
         "sourceMap": true,
         "strict": true,

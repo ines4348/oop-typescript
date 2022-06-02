@@ -15,20 +15,20 @@ enum Direction {
 }
 
 class Car {
-    private engine: boolean
+    private isEngineOn: boolean //TODO: переименовать с использованием какого-нибудь глагола
     private speed: number
     private gear: Gear
     private direction: Direction
 
     constructor() {
-        this.engine = false
+        this.isEngineOn = false
         this.speed = 0
         this.gear = Gear.NEUTRAL
         this.direction = Direction.STAND
     }
 
     public isTurnedOn(): boolean {
-        return this.engine
+        return this.isEngineOn
     }
 
     public getDirection(): Direction {
@@ -43,30 +43,34 @@ class Car {
         return this.gear
     }
 
-    public engineOn(): boolean {
-        this.engine = true
-        return this.engine
+    public engineOn(): boolean {//TODO всегда return true
+        this.isEngineOn = true
+        return this.isEngineOn
     }
 
     public engineOff(): boolean {
-        if (this.engine && this.gear === Gear.NEUTRAL && this.speed === 0 && this.direction === Direction.STAND) {
-            this.engine = false
+        if (this.isEngineOn &&
+            this.gear === Gear.NEUTRAL &&
+            this.speed === 0 && //заменить на хранение скорости со знаком вместо Direction
+            this.direction === Direction.STAND) {//TODO убрать Direction
+            this.isEngineOn = false
         }
 
-        return !this.engine
+        return !this.isEngineOn
     }
 
     public setGear(gear: number): boolean {
-        if (this.isChangeGear(gear) && this.isCorrespondsGearToDirection(gear)) {
+        // doesGearCorrespondToDirection, gearCorrespondsToDirection (this.gearCorrespondsToDirection)
+        // почему две функции вызывать по отдельности?
+        if (this.canChangeGear(gear) && this.isCorrespondsGearToDirection(gear)) {
             this.gear = this.convertGearNumberToEnum(gear)
-            this.changeDirection()
             return true
         }
         return false
     }
 
     public setSpeed(speed: number): boolean {
-        if (this.isChangeSpeed(speed)) {
+        if (this.isChangeSpeed(speed)) {//canChangeSpeed
             this.speed = speed
             this.changeDirection()
             return true
@@ -74,7 +78,7 @@ class Car {
         return false
     }
 
-    private changeDirection(): void {
+    private changeDirection(): void {//updateDirection
         if (this.gear === Gear.REVERSE && this.speed > 0) {
             this.direction = Direction.BACKWARD
             return
@@ -92,14 +96,25 @@ class Car {
     }
 
     private isChangeSpeed(speed: number): boolean {
-        return this.isCorrespondsGearToSpeed(this.getGear(), speed)
+        if (this.gear === Gear.NEUTRAL && (this.speed - speed) <= 0) {//TODO: ипользовать единый подход для получения внутренниъ свойств класса
+            return false
+        }
+        if (this.isSpeedAllowedForGear(this.gear, speed)) {
+            return true
+        }
+        return false
     }
 
-    private isChangeGear(gear: Gear): boolean {
-        return this.isCorrespondsGearToSpeed(gear, this.getSpeed())
+    private canChangeGear(gear: Gear): boolean {//TODO: переименовать с использованием can
+        if (this.gear !== Gear.REVERSE && gear === Gear.REVERSE && this.speed === 0) {
+            return true
+        } else if (gear != Gear.REVERSE && this.isSpeedAllowedForGear(gear, this.speed)) {
+            return true
+        }
+        return false
     }
 
-    private convertGearNumberToEnum(gear: number): Gear {
+    private convertGearNumberToEnum(gear: number): Gear {//массив для хранения значений
         switch (gear) {
             case -1: {
                 return Gear.REVERSE
@@ -128,14 +143,11 @@ class Car {
         }
     }
 
-    private isCorrespondsGearToSpeed(gear: Gear, speed: number) {
-        switch (gear) {
+    //TODO: декомпозировать функцию на несколько, потому что сейчас в ней используются 4 параметра, а можно ограничится 3 в каждой из них
+    private isSpeedAllowedForGear(gear: Gear, speed: number) {//TODO: isSpeedAllowedForGear
+        switch (gear) {//массив для хранения значений скорость и передача
             case Gear.NEUTRAL: {
-                if (this.getGear() === Gear.NEUTRAL && (this.speed - speed) >= 0) {
-                    return true
-                } else if (this.getGear() != Gear.NEUTRAL) {
-                    return true
-                }
+                return true
                 break
             }
             case Gear.FIRST: {
@@ -169,9 +181,7 @@ class Car {
                 break
             }
             case Gear.REVERSE: {
-                if (this.getGear() === Gear.REVERSE && speed >= 0 && speed <= 20) {
-                    return true
-                } else if (this.getSpeed() === 0 && speed >= 0 && speed <= 20) {
+                if (speed >= 0 && speed <= 20) {
                     return true
                 }
                 break

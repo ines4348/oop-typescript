@@ -1,0 +1,101 @@
+import {Rectangle} from '../../../src/lab4/1.2/Rectangle'
+import {Point} from '../../../src/lab4/1.2/Point'
+import {describe} from 'mocha'
+import {expect} from 'chai'
+
+describe('Rectangle', () => {
+    let rectangle: Rectangle
+    let leftTop: Point
+    let width: number
+    let height: number
+    let outlineColor: string
+    let fillColor: string
+
+    describe('created', () => {
+        it('with default fillColor = 0', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 49
+            height=49
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.getFillColor()).equal('000000')
+        })
+    })
+
+    describe('perimeter', () => {
+        it('should be equal 38 with leftTop = (1,1), width = 9 and height = 10', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 9
+            height = 10
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.getPerimeter()).equal(38)
+        })
+
+        it('should be equal 0 with leftTop = (1,1), width = 0 and height = 0', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 0
+            height = 0
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.getPerimeter()).equal(0)
+        })
+    })
+
+    describe('area', () => {
+        it('should be equal 100 with leftTop = (1,1), width = 10 and height = 10', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 10
+            height = 10
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.getArea()).equal(100)
+        })
+
+        it('should be equal 0 with leftTop = (1,1), width = 0 and height = 0', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 0
+            height = 0
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.getArea()).equal(0)
+        })
+    })
+
+    describe('toString', () => {
+        it('should be show info about shape type, left top point, width, height, outline color', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 10
+            height = 10
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+            expect(rectangle.toString()).equal(
+                'rectangle\n' +
+                'left top point: (1,1)\n' +
+                'width: 10\n' +
+                'height: 10\n' +
+                'area: 100\n' +
+                'perimeter: 40\n' +
+                'outline color: 000000\n' +
+                'fill color: 000000')
+        })
+    })
+})

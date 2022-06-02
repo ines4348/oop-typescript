@@ -1,6 +1,6 @@
-import {createInterface, Interface} from 'node:readline'
 import {stdin as input, stdout as output} from 'process'
-import {Car} from '../../../src/lab3/1.2/Car'
+import {createInterface, Interface} from 'node:readline'
+import {Car, Direction, Gear} from '../../../src/lab3/1.2/Car'
 
 const MESSAGE_WELCOME_INPUT = 'Start app. Help:\n' +
     'Info. Displays engine status, driving direction, speed and gear\n' +
@@ -11,6 +11,7 @@ const MESSAGE_WELCOME_INPUT = 'Start app. Help:\n' +
     'Exit. To exit from app'
 const ERROR_MESSAGE_TURN_OFF = 'Engine car can turned off at zero speed on neutral gear.'
 const ERROR_MESSAGE_WRONG_GEAR = 'Select right gear: [-1..5].'
+const ERROR_MESSAGE_WRONG_SPEED = 'Select right speed: [0..150].'
 const ERROR_MESSAGE_COMMAND = 'Wrong command.'
 const ERROR_MESSAGE_NOT_CHANGE_GEAR = 'Wrong gear.'
 const ERROR_MESSAGE_NOT_CHANGE_SPEED = 'Wrong speed.'
@@ -27,14 +28,14 @@ const SET_GEAR = 'SetGear'
 const SET_SPEED = 'SetSpeed'
 const EXIT = 'Exit'
 
-main()
-
+main()//CartController class и тестировать его вместо car
 function main(): void {
     const readLineInterface: Interface = createInterface({input, output})
     printMessage(MESSAGE_WELCOME_INPUT)
+    const car: Car = new Car()
     readLineInterface.on('line', (command: string) => {
-        const car: Car = new Car()
-        const response: string | void = executeCommand(readLineInterface, command, car)
+        const commandArray: string[] = command.split(' ')
+        const response: string | void = executeCommand(readLineInterface, commandArray, car)
         if (response) {
             printMessage(response)
         }
@@ -43,16 +44,18 @@ function main(): void {
 
 function getCarInfo(car: Car): string {
     const engineStatus: string = car.isTurnedOn() ? MESSAGE_INFO_ENGINE_TURN_ON : MESSAGE_INFO_ENGINE_TURN_OFF
-    const gearStatus: string = convertGearNumberToString(car.getGear())
+    const gearStatus: string = Gear[car.getGear()].toLowerCase()
     const speed: number = car.getSpeed()
-    const direction: string = convertDirectionNumberToString(car.getDirection())
+    const direction: string = Direction[car.getDirection()].toLowerCase()
     return `${MESSAGE_INFO_ENGINE} ${engineStatus}\n` +
         `${MESSAGE_INFO_GEAR} ${gearStatus}\n` +
         `${MESSAGE_INFO_SPEED} ${speed}\n` +
         `${MESSAGE_INFO_DIRECTION} ${direction}\n`
 }
 
-function executeCommand(readLineInterface: Interface, command: string, car: Car): string | void {
+function executeCommand(readLineInterface: Interface, commandArray: string[], car: Car): string | void {
+    //TODO: лучше поместить обработку всех команд в один switch
+    const command: string = commandArray[0]
     switch (command) {
         case INFO: {
             return getCarInfo(car)
@@ -70,107 +73,81 @@ function executeCommand(readLineInterface: Interface, command: string, car: Car)
             }
             return ERROR_MESSAGE_TURN_OFF
         }
+        case SET_GEAR: {
+            return changeGear(commandArray, car)
+        }
+        case SET_SPEED: {
+            return changeSpeed(commandArray, car)
+        }
         default: {
-            return changeCar(command, car)
+            return ERROR_MESSAGE_COMMAND
         }
     }
 }
 
-function changeCar(command: string, car: Car): string | void {
-    if (command.indexOf(SET_GEAR) === 0) {
-        return changeGear(command, car)
-    } else if (command.indexOf(SET_SPEED) === 0) {
-        return changeSpeed(command, car)
+function changeGear(commandArray: string[], car: Car): string | void {
+    //TODO: условия в конструкции можно инвертировать и будет меньшая вложенность
+    if (commandArray.length != 2 ){
+        return ERROR_MESSAGE_WRONG_GEAR
     }
-    return ERROR_MESSAGE_COMMAND
+
+    const gear: string = commandArray[1]
+    if (!isCorrectGear(gear)) {
+        return ERROR_MESSAGE_WRONG_GEAR
+    }
+
+    if (car.setGear(parseInt(gear))) {
+        return
+    }
+
+    return ERROR_MESSAGE_NOT_CHANGE_GEAR
 }
 
-function changeGear(command: string, car: Car): string | void {
-    const gear: string = command.replace(SET_GEAR, '')
-    if (isCorrectGear(gear)) {
-        if (car.setGear(parseInt(gear))) {
-            return
-        }
-        return ERROR_MESSAGE_NOT_CHANGE_GEAR
+function changeSpeed(commandArray: string[], car: Car): string | void {
+    if (commandArray.length != 2 ){
+        return ERROR_MESSAGE_WRONG_SPEED
     }
-    return ERROR_MESSAGE_WRONG_GEAR
-}
 
-function changeSpeed(command: string, car: Car): string | void {
-    const speed: string = command.replace(SET_SPEED, '')
-    if (isCorrectSpeed(speed)) {
-        if (car.setGear(parseFloat(speed))) {
-            return
-        }
-        return ERROR_MESSAGE_NOT_CHANGE_SPEED
+    const speed: string = commandArray[1]
+    if (!isCorrectSpeed(speed)) {
+        return ERROR_MESSAGE_WRONG_SPEED
     }
-    return ERROR_MESSAGE_WRONG_GEAR
+    if (car.setSpeed(parseFloat(speed))) {
+        return
+    }
+
+    return ERROR_MESSAGE_NOT_CHANGE_SPEED
 }
 
 function isCorrectGear(inputString: string): boolean {
-    const isNumber: boolean = Boolean(inputString.match(/[^0-9\-\s]/))
-    const isOnlyOneNumber: boolean = Boolean(inputString.match(/[\d+]/))
-    const isOnlyOneMinus: boolean = Boolean(inputString.replaceAll(/\s/g, '').replaceAll(/\d/g, '').match(/[\-+]/))
-    return !isNumber && !isOnlyOneNumber && !isOnlyOneMinus
+    const isNotNumber: boolean = Boolean(inputString.match(/[^0-9\-]/))
+    const foundMask: string[] | null = inputString.match(/(\-?\d?)/g)
+    const isCorrectGear: boolean = (foundMask && foundMask.length > 2) ? false : true
+    const isCorrectGearValue: boolean = (parseInt(inputString) >= -1 && parseInt(inputString) <= 5)
+    return !isNotNumber && isCorrectGear && isCorrectGearValue
 }
 
 function isCorrectSpeed(inputString: string): boolean {
-    const isNumber: boolean = !inputString.match(/[^0-9\.\-\s]/)
-    const isOnlyOneMinus: boolean = !inputString.replaceAll(/\s/g, '').replaceAll(/\d/g, '').replaceAll(/\./g, '').match(/[\-+]/)
-    const isOnlyOnePoint: boolean = !inputString.replaceAll(/\s/g, '').replaceAll(/\d/g, '').replaceAll(/\-/g, '').match(/[\.+]/)
-    return isNumber && isOnlyOneMinus && isOnlyOnePoint
+    //TODO: можно заменить на одну регулярку
+    const isCorrectSpeed: boolean = Boolean(inputString.match(/^(\d\d?\d?\.?\d?)/))
+    const isSomePoint: boolean = Boolean(inputString.replace('.', '').match(/\./g))
+    const isCorrectSpeedValue: boolean = (parseInt(inputString) >= 0 && parseInt(inputString) <= 150)
+    return isCorrectSpeed && !isSomePoint && isCorrectSpeedValue
 }
 
 function exit(readLineInterface: Interface): void {
     readLineInterface.close()
 }
 
-function convertGearNumberToString(gear: number): string {
-    switch (gear) {
-        case -1: {
-            return 'reverse'
-        }
-        case 0: {
-            return 'neutral'
-        }
-        case 1: {
-            return 'first'
-        }
-        case 2: {
-            return 'second'
-        }
-        case 3: {
-            return 'third'
-        }
-        case 4: {
-            return 'fourth'
-        }
-        case 5: {
-            return 'fifth'
-        }
-        default: {
-            return ''
-        }
-    }
-}
-
-function convertDirectionNumberToString(gear: number): string {
-    switch (gear) {
-        case -1: {
-            return 'backward'
-        }
-        case 0: {
-            return 'stand'
-        }
-        case 1: {
-            return 'forward'
-        }
-        default: {
-            return ''
-        }
-    }
-}
-
 function printMessage(message: string): void {
     console.log(message)
+}
+
+export {
+    getCarInfo,
+    executeCommand,
+    changeGear,
+    changeSpeed,
+    isCorrectGear,
+    isCorrectSpeed,
 }

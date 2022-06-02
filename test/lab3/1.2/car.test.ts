@@ -10,7 +10,7 @@ describe('Car:', () => {
             car = new Car()
         })
 
-        it('Car should be created with turned off engine', () => {
+        it('should have engine turned off', () => {
             expect(car.isTurnedOn()).equal(false)
         })
 
@@ -266,7 +266,7 @@ describe('Car:', () => {
             expect(car.setSpeed(20)).equal(true)
         })
 
-        it('Car on neutral gear shouldn\'t increase speed = 21', () => {
+        it('Car on neutral gear shouldn\'t increase speed = 31', () => {
             car.setGear(1)
             car.setSpeed(30)
             car.setGear(0)

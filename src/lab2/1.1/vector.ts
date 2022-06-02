@@ -12,7 +12,7 @@ function main(): void {// учесть кейс 2...5 и 5.5.7
         if (answer && isContainsOnlyNumbers(answer)) {
             const arrayNumbers: number[] = convertStringToArray(answer)
             multiplyEachItemByMinimum(arrayNumbers)
-            printArray(arrayNumbers)
+            printArray(arrayNumbers.sort())
         } else {
             printError(MESSAGE_INVALID_INPUT)
         }
@@ -48,7 +48,7 @@ function multiplyEachItemByMinimum(arrayNumbers: number[]): number[] { //раз�
 }
 
 function printArray(arrayNumbers: number[]): void {
-    console.log(arrayNumbers.sort())
+    console.log(arrayNumbers)
 }
 
 export {
