@@ -2,6 +2,9 @@ import {LineSegment} from '../../../src/lab4/1.2/LineSegment'
 import {Point} from '../../../src/lab4/1.2/Point'
 import {describe} from 'mocha'
 import {expect} from 'chai'
+import {CustomCanvas} from '../../../src/lab4/1.2/CustomCanvas'
+
+const sinon = require('sinon')
 
 describe('LineSegment', () => {
     let lineSegment: LineSegment
@@ -71,6 +74,31 @@ describe('LineSegment', () => {
                 'end point: (10,0)\n' +
                 'perimeter: 10\n' +
                 'outline color: 000000')
+        })
+    })
+
+    describe('draw', () => {
+        it('should draw line segment', () => {
+            startPoint = {
+                x: 0,
+                y: 0,
+            }
+            endPoint = {
+                x: 10,
+                y: 0,
+            }
+            outlineColor = '000000'
+            lineSegment = new LineSegment(startPoint, endPoint, outlineColor)
+
+            const canvas = new CustomCanvas()
+            const mockCustomCanvas = sinon.mock(canvas)
+
+            mockCustomCanvas.expects("setStrokeColor").once().withArgs(outlineColor)
+            mockCustomCanvas.expects("drawLine").once().withArgs(startPoint, endPoint)
+
+            lineSegment.draw(mockCustomCanvas.object)
+
+            mockCustomCanvas.verify()
         })
     })
 })

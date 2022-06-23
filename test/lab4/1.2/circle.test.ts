@@ -3,8 +3,6 @@ import {Point} from '../../../src/lab4/1.2/Point'
 import {describe} from 'mocha'
 import {expect} from 'chai'
 import {CustomCanvas} from '../../../src/lab4/1.2/CustomCanvas'
-import {Canvas, CanvasRenderingContext2D} from 'canvas'
-import {CanvasInterface} from '../../../src/lab4/1.2/CanvasInterface'
 
 const sinon = require('sinon')
 
@@ -102,7 +100,7 @@ describe('Circle', () => {
     })
 
     describe('draw', () => {
-        it('', () => {
+        it('should draw circle', () => {
             center = {
                 x: 1,
                 y: 1,
@@ -112,18 +110,16 @@ describe('Circle', () => {
             fillColor = '000000'
             circle = new Circle(center, radius, outlineColor)
 
+            const canvas = new CustomCanvas()
+            const mockCustomCanvas = sinon.mock(canvas)
 
-            const mockCustomCanvas = sinon.mock({
-                setFillColor: function (fillColor: string): void{},
-                setStrokeColor: function (outlineColor: string): void{},
-                drawLine: function (from: Point, to: Point): void {},
-                drawRectangle: function (point: Point, width: number, height: number): void {},
-                drawPolygon: function (points: Point[]): void {},
-                drawCircle: function (center:Point, radius: number): void {},
-            })
+            mockCustomCanvas.expects("setStrokeColor").once().withArgs(outlineColor)
+            mockCustomCanvas.expects("setFillColor").once().withArgs(fillColor)
+            mockCustomCanvas.expects("drawCircle").once().withArgs(center, radius)
+
             circle.draw(mockCustomCanvas.object)
-            // mockCustomCanvas.expect('drawCircle').once()
-            // mockCustomCanvas.verify()
+
+            mockCustomCanvas.verify()
         })
     })
 })

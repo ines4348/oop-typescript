@@ -10,7 +10,7 @@ class Time {
     private seconds: number
 
     constructor(hours: number, minutes: number, seconds: number = 0) {
-        if (!this.isValidParameters(hours, minutes, seconds)) {
+        if (!Time.isValidParameters(hours, minutes, seconds)) {
             throw new Error(ERROR_MESSAGE)
         }
         this.seconds = Time.convertToTimestamp(hours, minutes, seconds)
@@ -29,11 +29,7 @@ class Time {
     }
 
     public postIncrement(): Time {
-        const temporaryTime: Time = new Time(
-            Time.hoursInTimestamp(this.seconds),
-            Time.minutesInTimestamp(this.seconds),
-            Time.secondsInTimestamp(this.seconds),
-        )
+        const temporaryTime: Time = Time.convertTimestampToTime(this.seconds)
         this.seconds = Time.getCorrectSeconds(++this.seconds)
         return temporaryTime
     }
@@ -44,11 +40,7 @@ class Time {
     }
 
     public postDecrement(): Time {
-        const temporaryTime: Time = new Time(
-            Time.hoursInTimestamp(this.seconds),
-            Time.minutesInTimestamp(this.seconds),
-            Time.secondsInTimestamp(this.seconds),
-        )
+        const temporaryTime: Time = Time.convertTimestampToTime(this.seconds)
         this.seconds = Time.getCorrectSeconds(--this.seconds)
         return temporaryTime
     }
@@ -83,23 +75,8 @@ class Time {
     }
 
     public divWithAssignment(divisor: Time | number): Time {
-        let temporarySeconds: number
-        if (typeof divisor === 'number') {
-            if (divisor === 0) {
-                throw new Error(ERROR_MESSAGE_NULL)
-            }
-
-            if (!Number.isInteger(divisor)) {
-                throw new Error(ERROR_MESSAGE_NOT_INTEGER)
-            }
-            temporarySeconds = this.seconds / divisor
-        } else {
-            if (divisor.seconds === 0) {
-                throw new Error(ERROR_MESSAGE_NULL)
-            }
-            temporarySeconds = this.seconds / divisor.seconds
-        }
-        this.seconds = Math.trunc(Time.getCorrectSeconds(temporarySeconds))
+        const temporaryTimestamp: number = Time.getDivResult(this, divisor)
+        this.seconds = Math.trunc(Time.getCorrectSeconds(temporaryTimestamp))
         return this
     }
 
@@ -132,23 +109,7 @@ class Time {
 
     public static div(dividend: Time, divisor: Time | number): Time {
         //можно вынести одинаковый код
-        let temporaryTimestamp: number
-        if (typeof divisor === 'number') {
-            if (divisor === 0) {
-                throw new Error(ERROR_MESSAGE_NULL)
-            }
-
-            if (!Number.isInteger(divisor)) {
-                throw new Error(ERROR_MESSAGE_NOT_INTEGER)
-            }
-
-            temporaryTimestamp = dividend.seconds / divisor
-        } else {
-            if (divisor.seconds === 0) {
-                throw new Error(ERROR_MESSAGE_NULL)
-            }
-            temporaryTimestamp = dividend.seconds / divisor.seconds
-        }
+        let temporaryTimestamp: number = Time.getDivResult(dividend, divisor)
         temporaryTimestamp = Math.trunc(Time.getCorrectSeconds(temporaryTimestamp))
         return Time.convertTimestampToTime(temporaryTimestamp)
     }
@@ -177,29 +138,43 @@ class Time {
         return time1.seconds >= time2.seconds
     }
 
-    private isValidParameters(hours: number, minutes: number, seconds: number): boolean {
-        return this.isValidHoursParameter(hours) && this.isValidMinutesParameter(minutes) && this.isValidSecondsParameter(seconds)
+    private static getDivResult(dividend: Time, divisor: Time | number): number {
+        let temporarySeconds: number
+        if (typeof divisor === 'number') {
+            if (divisor === 0) {
+                throw new Error(ERROR_MESSAGE_NULL)
+            }
+
+            if (!Number.isInteger(divisor)) {
+                throw new Error(ERROR_MESSAGE_NOT_INTEGER)
+            }
+            temporarySeconds = dividend.seconds / divisor
+        } else {
+            if (divisor.seconds === 0) {
+                throw new Error(ERROR_MESSAGE_NULL)
+            }
+            temporarySeconds = dividend.seconds / divisor.seconds
+        }
+        return temporarySeconds
     }
 
-    private isValidHoursParameter(hours: number): boolean {
-        if (Number.isInteger(hours) && hours >= 0 && hours < 24) {
-            return true
-        }
-        return false
+    private static isValidParameters(hours: number, minutes: number, seconds: number): boolean {
+        return Time.isValidHoursParameter(hours) && Time.isValidMinutesParameter(minutes) && Time.isValidSecondsParameter(seconds)
     }
 
-    private isValidMinutesParameter(minutes: number): boolean {
-        if (Number.isInteger(minutes) && minutes >= 0 && minutes < 60) {
-            return true
-        }
-        return false
+    private static isValidHoursParameter(hours: number): boolean {
+        return Number.isInteger(hours) && hours >= 0 && hours < 24
+
     }
 
-    private isValidSecondsParameter(seconds: number): boolean {
-        if (Number.isInteger(seconds) && seconds >= 0 && seconds < 60) {
-            return true
-        }
-        return false
+    private static isValidMinutesParameter(minutes: number): boolean {
+        return Number.isInteger(minutes) && minutes >= 0 && minutes < 60
+
+    }
+
+    private static isValidSecondsParameter(seconds: number): boolean {
+        return Number.isInteger(seconds) && seconds >= 0 && seconds < 60
+
     }
 
     private static hoursInTimestamp(timestamp: number): number {

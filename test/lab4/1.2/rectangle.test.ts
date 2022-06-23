@@ -2,6 +2,9 @@ import {Rectangle} from '../../../src/lab4/1.2/Rectangle'
 import {Point} from '../../../src/lab4/1.2/Point'
 import {describe} from 'mocha'
 import {expect} from 'chai'
+import {CustomCanvas} from '../../../src/lab4/1.2/CustomCanvas'
+
+const sinon = require('sinon')
 
 describe('Rectangle', () => {
     let rectangle: Rectangle
@@ -9,7 +12,6 @@ describe('Rectangle', () => {
     let width: number
     let height: number
     let outlineColor: string
-    let fillColor: string
 
     describe('created', () => {
         it('with default fillColor = 0', () => {
@@ -87,6 +89,7 @@ describe('Rectangle', () => {
             height = 10
             outlineColor = '000000'
             rectangle = new Rectangle(leftTop, width, height, outlineColor)
+
             expect(rectangle.toString()).equal(
                 'rectangle\n' +
                 'left top point: (1,1)\n' +
@@ -96,6 +99,30 @@ describe('Rectangle', () => {
                 'perimeter: 40\n' +
                 'outline color: 000000\n' +
                 'fill color: 000000')
+        })
+    })
+
+    describe('draw', () => {
+        it('should draw rectangle', () => {
+            leftTop = {
+                x: 1,
+                y: 1,
+            }
+            width = 10
+            height = 10
+            outlineColor = '000000'
+            rectangle = new Rectangle(leftTop, width, height, outlineColor)
+
+            const canvas = new CustomCanvas()
+            const mockCustomCanvas = sinon.mock(canvas)
+
+            mockCustomCanvas.expects("setStrokeColor").once().withArgs(outlineColor)
+            mockCustomCanvas.expects("setFillColor").once().withArgs('000000')
+            mockCustomCanvas.expects("drawRectangle").once().withArgs(leftTop, width, height)
+
+            rectangle.draw(mockCustomCanvas.object)
+
+            mockCustomCanvas.verify()
         })
     })
 })

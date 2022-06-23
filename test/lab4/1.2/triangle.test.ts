@@ -2,6 +2,9 @@ import {Triangle} from '../../../src/lab4/1.2/Triangle'
 import {Point} from '../../../src/lab4/1.2/Point'
 import {describe} from 'mocha'
 import {expect} from 'chai'
+import {CustomCanvas} from '../../../src/lab4/1.2/CustomCanvas'
+
+const sinon = require('sinon')
 
 describe('Triangle', () => {
     let triangle: Triangle
@@ -137,6 +140,39 @@ describe('Triangle', () => {
                 'perimeter: 12\n' +
                 'outline color: 000000\n' +
                 'fill color: 0000ff')
+        })
+    })
+
+    describe('draw', () => {
+        it('should draw triangle', () => {
+            vertex1 = {
+                x: 0,
+                y: 0,
+            }
+            vertex2 = {
+                x: 3,
+                y: 0,
+            }
+            vertex3 = {
+                x: 0,
+                y: 4,
+            }
+            outlineColor = '000000'
+            fillColor = '0000ff'
+            triangle = new Triangle(vertex1, vertex2, vertex3, outlineColor, fillColor)
+
+            const canvas = new CustomCanvas()
+            const mockCustomCanvas = sinon.mock(canvas)
+
+            mockCustomCanvas.expects("setStrokeColor").once().withArgs(outlineColor)
+            mockCustomCanvas.expects("setFillColor").once().withArgs(fillColor)
+
+            const points: Point[] = [vertex1, vertex2, vertex3]
+            mockCustomCanvas.expects("drawPolygon").once().withArgs(points)
+
+            triangle.draw(mockCustomCanvas.object)
+
+            mockCustomCanvas.verify()
         })
     })
 })

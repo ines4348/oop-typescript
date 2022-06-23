@@ -105,7 +105,15 @@ function isTriangleDescriptionCorrect(lineArray: string[]) {
         }
     }
 
+    isErrorFound = isNotCorrectTriangle(lineArray)
     return !isErrorFound
+}
+
+function isNotCorrectTriangle(lineItem: string[]): boolean {
+    if (lineItem[0] === lineItem [2] && lineItem[0] === lineItem [4]) {
+        return true
+    }
+    return lineItem[1] === lineItem [3] && lineItem[1] === lineItem [5];
 }
 
 function isCircleDescriptionCorrect(lineArray: string[]) {
@@ -149,7 +157,7 @@ function isLineDescriptionCorrect(lineArray: string[]) {
 }
 
 function isNotNumber(lineItem: string): boolean {
-    return Boolean(lineItem.match(/[^0-9\.\-]/))
+    return Boolean(lineItem.match(/[^0-9.-]/))
 }
 
 function isNotColor(lineItem: string) {
