@@ -34,13 +34,26 @@ describe('CHttpUrl', () => {
         }
     })
 
-    it('url with space should return exception', () => {
+    it('port with space should return exception', () => {
         try {
             httpUrl = new HttpUrl('http://www.ispring.ru: 8080/')
             expect(httpUrl.getUrl()).not.eql('http://www.ispring.ru:8080/')
         } catch (error) {
+            expect(error.message).eql('Wrong port')
+        }
+    })
+
+    it('url without :// should be return exception', () => {
+        try {
+            httpUrl = new HttpUrl('http')
+            expect(httpUrl.getUrl()).not.eql('http')
+        } catch (error) {
             expect(error.message).eql('Wrong url')
         }
+
+
+        httpUrl = new HttpUrl('HTTPS://www.ispring.ru/')
+        expect(httpUrl.getProtocol()).eql('https')
     })
 
     it('protocol http should be returned', () => {
@@ -245,5 +258,14 @@ describe('CHttpUrl', () => {
     it('parameter after ? shouldn\'t be included in document', () => {
         httpUrl = new HttpUrl("https://wwww.ispring.ru/test?p=1")
         expect(httpUrl.getDocument()).eql('/test?p=1')
+    })
+
+    it('wrong port after :', () => {
+        try {
+            httpUrl = new HttpUrl("https://wwww.ispring.ru:/test?p=1")
+            expect(httpUrl.getPort()).not.eql('')
+        } catch (error) {
+            expect(error.message).eql('Wrong port')
+        }
     })
 })
