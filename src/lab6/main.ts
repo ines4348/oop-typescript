@@ -5,17 +5,28 @@ import {UrlParsingError} from './UrlParsingError'
 
 const MESSAGE_WELCOME_INPUT = 'For close enter "exit".\nEnter url: '
 const EXIT = 'exit'
+const ERROR_URL = 'Wrong url'
 
 function printMessage(error: string) {
     console.log(error)
 }
-
+//http://domain://document
 function printUrlInfo(httpUrl: HttpUrl) {
     console.log(`Protocol: ${httpUrl.getProtocol()}`)
     console.log(`Domain: ${httpUrl.getDomain()}`)
     console.log(`Port: ${httpUrl.getPort()}`)
     console.log(`Document: ${httpUrl.getDocument()}`)
     console.log(`Constructed url: ${httpUrl.getUrl()}`)
+}
+
+//сделать статическим или свободной функцией
+function isCorrectUrlCharacter(url: string): boolean {
+    if (!url) {
+        return false
+    }
+
+    //убрать экранирование
+    return !Boolean(url.match(/[^0-9a-zA-Z-.:_!~*'()/?&=]/))
 }
 
 //считывать несколько строкон
@@ -29,6 +40,10 @@ function main(): void {
         if (message === EXIT) {
             readLineInterface.close()
             return
+        }
+
+        if (!isCorrectUrlCharacter(message)) {
+            throw new UrlParsingError(ERROR_URL)
         }
 
         try {
